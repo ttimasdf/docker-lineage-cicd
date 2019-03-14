@@ -120,6 +120,12 @@ ENV DELETE_OLD_LOGS 0
 # Requires ZIP_SUBDIR.
 ENV OPENDELTA_BUILDS_JSON ''
 
+# Override custom vendor if you want to building a custom ROM.
+ENV VENDOR ''
+
+# Override main manifest repo url
+ENV MANIFEST_URL 'https://github.com/LineageOS/android.git'
+
 # You can optionally specify a USERSCRIPTS_DIR volume containing these scripts:
 #  * begin.sh, run at the very beginning
 #  * before.sh, run after the syncing and patching, before starting the builds
