@@ -148,10 +148,6 @@ VOLUME $KEYS_DIR
 VOLUME $LOGS_DIR
 VOLUME $USERSCRIPTS_DIR
 
-# Copy required files
-#####################
-COPY src/ /root/
-
 # Create missing directories
 ############################
 RUN mkdir -p $MIRROR_DIR
@@ -201,6 +197,10 @@ RUN cd /root/ && \
                    s|^\s*KEY_X509=.*|KEY_X509=$KEYS_DIR/releasekey.x509.pem|; \
                    s|^\s*KEY_PK8=.*|KEY_PK8=$KEYS_DIR/releasekey.pk8|; \
                    s|publish|$DELTA_DIR|g' /root/delta/opendelta.sh
+
+# Copy required files
+#####################
+COPY src/ /root/
 
 # Set the work directory
 ########################

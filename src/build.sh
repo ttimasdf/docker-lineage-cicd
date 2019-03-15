@@ -243,14 +243,14 @@ for branch in ${BRANCH_NAME//,/ }; do
     echo ">> [$(date)] Using OpenJDK $jdk_version"
     update-java-alternatives -s java-1.$jdk_version.0-openjdk-amd64 &> /dev/null
 
-    # Prepare the environment
-    echo ">> [$(date)] Preparing build environment"
-    source build/envsetup.sh > /dev/null
-
     if [ -f /root/userscripts/before.sh ]; then
       echo ">> [$(date)] Running before.sh"
       /root/userscripts/before.sh
     fi
+
+    # Prepare the environment
+    echo ">> [$(date)] Preparing build environment"
+    source build/envsetup.sh > /dev/null
 
     for codename in ${devices//,/ }; do
       if ! [ -z "$codename" ]; then
