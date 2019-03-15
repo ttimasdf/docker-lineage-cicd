@@ -144,7 +144,7 @@ for branch in ${BRANCH_NAME//,/ }; do
     android_version_major=$(cut -d '.' -f 1 <<< $android_version)
 
     if [ -n "$VENDOR" -a "$MANIFEST_URL" != 'https://github.com/LineageOS/android.git' ]; then
-      echo ">> [$(date)] Using custom vendor: $vendor" | tee -a "$repo_log"
+      echo ">> [$(date)] Using custom vendor: $VENDOR" | tee -a "$repo_log"
       vendor="$VENDOR"
     elif [ "$android_version_major" -ge "8" ]; then
       vendor="lineage"
