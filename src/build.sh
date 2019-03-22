@@ -303,6 +303,10 @@ for branch in ${BRANCH_NAME//,/ }; do
         # Start the build
         echo ">> [$(date)] Starting build for $codename, $branch branch" | tee -a "$DEBUG_LOG"
         build_successful=false
+        while [ "$INTERACTIVE" = "true" ]; do
+                echo ">> [$(date)] Enter interactive mode for $branch branch" | tee -a "$DEBUG_LOG"
+                sleep 3600
+	done
         if brunch $codename &>> "$DEBUG_LOG"; then
           currentdate=$(date +%Y%m%d)
           if [ "$builddate" != "$currentdate" ]; then
