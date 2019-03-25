@@ -109,7 +109,7 @@ for branch in ${BRANCH_NAME//,/ }; do
     if [ "$LOCAL_MIRROR" = true ]; then
       yes | repo init -u https://github.com/LineageOS/android.git --reference "$MIRROR_DIR" -b "$branch" &>> "$repo_log"
     else
-      yes | repo init -u "$MANIFEST_URL" -b "$branch" &>> "$repo_log"
+      yes | repo init -u "$MANIFEST_URL" -b "$branch" $REPO_INIT_ARGS &>> "$repo_log"
     fi
 
     # Copy local manifests to the appropriate folder in order take them into consideration
@@ -268,7 +268,7 @@ for branch in ${BRANCH_NAME//,/ }; do
 
           echo ">> [$(date)] Syncing branch repository" | tee -a "$repo_log"
           cd "$SRC_DIR/$branch_dir"
-          repo sync -c --force-sync &>> "$repo_log"
+          repo sync -c --force-sync $REPO_SYNC_ARGS &>> "$repo_log"
         fi
 
         if [ "$BUILD_OVERLAY" = true ]; then

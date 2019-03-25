@@ -126,6 +126,16 @@ ENV VENDOR ''
 # Override main manifest repo url
 ENV MANIFEST_URL 'https://github.com/LineageOS/android.git'
 
+# If this variable is set to any non-empty value, the container would
+# run forever waiting for attach.
+ENV INTERACTIVE ''
+
+# More args supplied to `repo init` command
+ENV REPO_INIT_ARGS ''
+
+# More args supplied to `repo sync` command
+ENV REPO_SYNC_ARGS ''
+
 # You can optionally specify a USERSCRIPTS_DIR volume containing these scripts:
 #  * begin.sh, run at the very beginning
 #  * before.sh, run after the syncing and patching, before starting the builds
