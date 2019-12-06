@@ -173,8 +173,12 @@ RUN mkdir -p $USERSCRIPTS_DIR
 
 # Install build dependencies
 ############################
-RUN apt-get -qq update
-RUN apt-get -qqy upgrade
+
+# Use 163 mirror, comment out if necessary
+COPY apt.sources.163.list /etc/apt/sources.list
+
+RUN apt-get update
+RUN apt-get -y upgrade
 
 RUN apt-get install -y bc bison bsdmainutils build-essential ccache cgpt cron \
       curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick kmod \
