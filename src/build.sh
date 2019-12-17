@@ -109,7 +109,7 @@ for branch in ${BRANCH_NAME//,/ }; do
 
     echo ">> [$(date)] (Re)initializing branch repository" | tee -a "$repo_log"
     if [ "$LOCAL_MIRROR" = true ]; then
-      yes | repo init -u https://github.com/LineageOS/android.git --reference "$MIRROR_DIR" -b "$branch" &>> "$repo_log"
+      yes | repo init -u "$MANIFEST_URL" --reference "$MIRROR_DIR" -b "$branch" $REPO_INIT_ARGS &>> "$repo_log"
     else
       yes | repo init -u "$MANIFEST_URL" -b "$branch" $REPO_INIT_ARGS &>> "$repo_log"
     fi
@@ -138,9 +138,14 @@ for branch in ${BRANCH_NAME//,/ }; do
         "https://gitlab.com/the-muppets/manifest/raw/$themuppets_branch/muppets.xml" .repo/local_manifests/proprietary_gitlab.xml
     fi
 
+    if [ -f /root/userscripts/before-sync.sh ]; then
+      echo ">> [$(date)] Running before-sync.sh"
+      /root/userscripts/before-sync.sh
+    fi
+
     echo ">> [$(date)] Syncing branch repository" | tee -a "$repo_log"
     builddate=$(date +%Y%m%d)
-    repo sync -c --force-sync &>> "$repo_log"
+    repo sync -c --force-sync $REPO_SYNC_ARGS &>> "$repo_log"
 
     android_version=$(sed -n -e 's/^\s*PLATFORM_VERSION\.OPM1 := //p' build/core/version_defaults.mk)
     if [ -z $android_version ]; then
@@ -178,9 +183,15 @@ for branch in ${BRANCH_NAME//,/ }; do
     mkdir -p "vendor/$vendor/overlay/microg/"
     sed -i "1s;^;PRODUCT_PACKAGE_OVERLAYS := vendor/$vendor/overlay/microg\n;" "vendor/$vendor/config/common.mk"
 
-    los_ver_major=$(sed -n -e 's/^\s*PRODUCT_VERSION_MAJOR = //p' "vendor/$vendor/config/common.mk")
-    los_ver_minor=$(sed -n -e 's/^\s*PRODUCT_VERSION_MINOR = //p' "vendor/$vendor/config/common.mk")
-    los_ver="$los_ver_major.$los_ver_minor"
+    if [ "$vendor" = "aicp" ]; then
+      los_ver_major=$(sed -n -e 's/^\s*AICP_VERSION_MAJOR = //p' "vendor/aicp/config/aicp_version.mk")
+      los_ver_minor=$(sed -n -e 's/^\s*AICP_VERSION_MINOR = //p' "vendor/aicp/config/aicp_version.mk")
+      los_ver="$los_ver_major.$los_ver_minor"
+    else
+      los_ver_major=$(sed -n -e 's/^\s*PRODUCT_VERSION_MAJOR = //p' "vendor/$vendor/config/common.mk")
+      los_ver_minor=$(sed -n -e 's/^\s*PRODUCT_VERSION_MINOR = //p' "vendor/$vendor/config/common.mk")
+      los_ver="$los_ver_major.$los_ver_minor"
+    fi
 
     # If needed, apply the microG's signature spoofing patch
     if [ "$SIGNATURE_SPOOFING" = "yes" ] || [ "$SIGNATURE_SPOOFING" = "restricted" ]; then
@@ -283,7 +294,7 @@ for branch in ${BRANCH_NAME//,/ }; do
           if [ "$LOCAL_MIRROR" = true ]; then
             echo ">> [$(date)] Syncing mirror repository" | tee -a "$repo_log"
             cd "$MIRROR_DIR"
-            repo sync --force-sync --no-clone-bundle &>> "$repo_log"
+            repo sync --force-sync --no-clone-bundle $REPO_SYNC_ARGS &>> "$repo_log"
           fi
 
           echo ">> [$(date)] Syncing branch repository" | tee -a "$repo_log"
@@ -313,7 +324,7 @@ for branch in ${BRANCH_NAME//,/ }; do
           logsubdir=
         fi
 
-        DEBUG_LOG="$LOGS_DIR/$logsubdir/lineage-$los_ver-$builddate-$RELEASE_TYPE-$codename.log"
+        DEBUG_LOG="$LOGS_DIR/$logsubdir/$vendor-$los_ver-$builddate-$RELEASE_TYPE-$codename.log"
 
         if [ -f /root/userscripts/pre-build.sh ]; then
           echo ">> [$(date)] Running pre-build.sh for $codename" >> "$DEBUG_LOG"
@@ -330,7 +341,7 @@ for branch in ${BRANCH_NAME//,/ }; do
         if brunch $codename &>> "$DEBUG_LOG"; then
           currentdate=$(date +%Y%m%d)
           if [ "$builddate" != "$currentdate" ]; then
-            find out/target/product/$codename -maxdepth 1 -name "lineage-*-$currentdate-*.zip*" -type f -exec sh /root/fix_build_date.sh {} $currentdate $builddate \; &>> "$DEBUG_LOG"
+            find out/target/product/$codename -maxdepth 1 -name "$vendor*$currentdate*.zip*" -type f -exec sh /root/fix_build_date.sh {} $currentdate $builddate \; &>> "$DEBUG_LOG"
           fi
 
           if [ "$BUILD_DELTA" = true ]; then
@@ -351,16 +362,16 @@ for branch in ${BRANCH_NAME//,/ }; do
               # If the first build, copy the current full zip in $source_dir/delta_last/$codename/
               echo ">> [$(date)] No previous build for $codename; using current build as base for the next delta" | tee -a "$DEBUG_LOG"
               mkdir -p delta_last/$codename/ &>> "$DEBUG_LOG"
-              find out/target/product/$codename -maxdepth 1 -name 'lineage-*.zip' -type f -exec cp {} "$source_dir/delta_last/$codename/" \; &>> "$DEBUG_LOG"
+              find out/target/product/$codename -maxdepth 1 -name "$vendor*.zip" -type f -exec cp {} "$source_dir/delta_last/$codename/" \; &>> "$DEBUG_LOG"
             fi
           fi
           # Move produced ZIP files to the main OUT directory
           echo ">> [$(date)] Moving build artifacts for $codename to '$ZIP_DIR/$zipsubdir'" | tee -a "$DEBUG_LOG"
           cd out/target/product/$codename
-          for build in lineage-*.zip; do
-            sha256sum "$build" > "$ZIP_DIR/$zipsubdir/$build.sha256sum"
+          for build in $vendor*.zip; do
+            [ -f "$build" ] && sha256sum "$build" > "$ZIP_DIR/$zipsubdir/$build.sha256sum"
           done
-          find . -maxdepth 1 -name 'lineage-*.zip*' -type f -exec mv {} "$ZIP_DIR/$zipsubdir/" \; &>> "$DEBUG_LOG"
+          find . -maxdepth 1 -name "$vendor*.zip*" -type f -exec mv {} "$ZIP_DIR/$zipsubdir/" \; &>> "$DEBUG_LOG"
           cd "$source_dir"
           build_successful=true
         else

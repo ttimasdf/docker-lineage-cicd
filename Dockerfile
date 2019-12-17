@@ -187,8 +187,11 @@ RUN apt-get install -y bc bison bsdmainutils build-essential ccache cgpt cron \
       libxml2-utils lsof lzop maven openjdk-8-jdk pngcrush procps python rsync \
       schedtool squashfs-tools wget xdelta3 xsltproc yasm zip zlib1g-dev
 
-RUN curl https://storage.googleapis.com/git-repo-downloads/repo > /usr/local/bin/repo
+# RUN curl https://storage.googleapis.com/git-repo-downloads/repo > /usr/local/bin/repo
+# Use Chinese mirror from tsinghua
+RUN curl https://mirrors.tuna.tsinghua.edu.cn/git/git-repo > /usr/local/bin/repo
 RUN chmod a+x /usr/local/bin/repo
+ENV REPO_URL 'https://mirrors.tuna.tsinghua.edu.cn/git/git-repo/'
 
 # Download and build delta tools
 ################################
@@ -222,4 +225,4 @@ RUN ln -sf /proc/1/fd/1 /var/log/docker.log
 
 # Set the entry point to init.sh
 ################################
-ENTRYPOINT /root/init.sh
+CMD /root/init.sh
