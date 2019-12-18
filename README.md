@@ -2,6 +2,16 @@
 
 Docker microservice for LineageOS Continuous Integration and Continous Deployment
 
+## Features of This Fork
+
+- Support building custom ROMs(AICP, RR tested).
+- Change Debian repo to Chinese (Tsinghua Tuna) mirrors, minimizing Docker build time.
+- Add hook function `before-sync`. Allowing modifications to manifests before sync.
+   One use case: changing AOSP fetch URL to Chinese mirror.
+- Support seperate local_manifests importing for different device, manifest
+   XML with prefix `device-XXXX.xml` will only be copied to `local_manifests`
+   folder when building with environment variable `DEVICE_LIST=XXXX`.
+
 ## Why Docker?
 
 A fair number of dependencies is needed to build LineageOS, plus a Linux system
