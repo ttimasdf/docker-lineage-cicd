@@ -117,7 +117,12 @@ for branch in ${BRANCH_NAME//,/ }; do
     # Copy local manifests to the appropriate folder in order take them into consideration
     echo ">> [$(date)] Copying '$LMANIFEST_DIR/*.xml' to '.repo/local_manifests/'"
     mkdir -p .repo/local_manifests
-    rsync -a --delete --include '*.xml' --exclude '*' "$LMANIFEST_DIR/" .repo/local_manifests/
+    rsync -a --delete --exclude 'device-*.xml' --include '*.xml' --exclude '*' "$LMANIFEST_DIR/" .repo/local_manifests/
+    device_xml="$LMANIFEST_DIR/device-${DEVICE_LIST}.xml"
+    if [ -f "$device_xml" ]; then
+      echo ">> [$(date)] Copying '$device_xml' to '.repo/local_manifests/'"
+      rsync -a "$device_xml" .repo/local_manifests/
+    fi
 
     rm -f .repo/local_manifests/proprietary.xml
     if [ "$INCLUDE_PROPRIETARY" = true ]; then
