@@ -192,6 +192,8 @@ for branch in ${BRANCH_NAME//,/ }; do
       los_ver_major=$(sed -n -e 's/^\s*AICP_VERSION_MAJOR = //p' "vendor/aicp/config/aicp_version.mk")
       los_ver_minor=$(sed -n -e 's/^\s*AICP_VERSION_MINOR = //p' "vendor/aicp/config/aicp_version.mk")
       los_ver="$los_ver_major.$los_ver_minor"
+    elif [ "$vendor" = "rr" ]; then
+      los_ver="$(sed -n -e 's/^\s*PRODUCT_VERSION = //p' "vendor/rr/build/core/main_version.mk")"
     else
       los_ver_major=$(sed -n -e 's/^\s*PRODUCT_VERSION_MAJOR = //p' "vendor/$vendor/config/common.mk")
       los_ver_minor=$(sed -n -e 's/^\s*PRODUCT_VERSION_MINOR = //p' "vendor/$vendor/config/common.mk")
@@ -339,14 +341,24 @@ for branch in ${BRANCH_NAME//,/ }; do
         # Start the build
         echo ">> [$(date)] Starting build for $codename, $branch branch" | tee -a "$DEBUG_LOG"
         build_successful=false
-        while [ "$INTERACTIVE" = "true" ]; do
+
+        # Wait for docker attach if setting INTERACTIVE, `killall sleep` to proceed on
+        if [ "$INTERACTIVE" = "true" ]; then
                 echo ">> [$(date)] Enter interactive mode for $branch branch" | tee -a "$DEBUG_LOG"
-                sleep 3600
-	done
-        if brunch $codename &>> "$DEBUG_LOG"; then
+                sleep infinity
+      	fi
+
+        if [ "$INTERACTIVE" = "true" ] || brunch $codename &>> "$DEBUG_LOG"; then
           currentdate=$(date +%Y%m%d)
+
+          if [ "$vendor" = "rr" ]; then
+            zipheader="RR"
+          else
+            zipheader="$vendor"
+          fi
+
           if [ "$builddate" != "$currentdate" ]; then
-            find out/target/product/$codename -maxdepth 1 -name "$vendor*$currentdate*.zip*" -type f -exec sh /root/fix_build_date.sh {} $currentdate $builddate \; &>> "$DEBUG_LOG"
+            find out/target/product/$codename -maxdepth 1 -name "$zipheader*$currentdate*.zip*" -type f -exec sh /root/fix_build_date.sh {} $currentdate $builddate \; &>> "$DEBUG_LOG"
           fi
 
           if [ "$BUILD_DELTA" = true ]; then
@@ -367,16 +379,16 @@ for branch in ${BRANCH_NAME//,/ }; do
               # If the first build, copy the current full zip in $source_dir/delta_last/$codename/
               echo ">> [$(date)] No previous build for $codename; using current build as base for the next delta" | tee -a "$DEBUG_LOG"
               mkdir -p delta_last/$codename/ &>> "$DEBUG_LOG"
-              find out/target/product/$codename -maxdepth 1 -name "$vendor*.zip" -type f -exec cp {} "$source_dir/delta_last/$codename/" \; &>> "$DEBUG_LOG"
+              find out/target/product/$codename -maxdepth 1 -name "$zipheader*.zip" -type f -exec cp {} "$source_dir/delta_last/$codename/" \; &>> "$DEBUG_LOG"
             fi
           fi
           # Move produced ZIP files to the main OUT directory
           echo ">> [$(date)] Moving build artifacts for $codename to '$ZIP_DIR/$zipsubdir'" | tee -a "$DEBUG_LOG"
           cd out/target/product/$codename
-          for build in $vendor*.zip; do
+          for build in $zipheader*.zip; do
             [ -f "$build" ] && sha256sum "$build" > "$ZIP_DIR/$zipsubdir/$build.sha256sum"
           done
-          find . -maxdepth 1 -name "$vendor*.zip*" -type f -exec mv {} "$ZIP_DIR/$zipsubdir/" \; &>> "$DEBUG_LOG"
+          find . -maxdepth 1 -name "$zipheader*.zip*" -type f -exec mv {} "$ZIP_DIR/$zipsubdir/" \; &>> "$DEBUG_LOG"
           cd "$source_dir"
           build_successful=true
         else

@@ -126,8 +126,8 @@ ENV VENDOR ''
 # Override main manifest repo url
 ENV MANIFEST_URL 'https://github.com/LineageOS/android.git'
 
-# If this variable is set to any non-empty value, the container would
-# run forever waiting for attach.
+# If this variable is set to `true`, the container would
+# run forever waiting for attach, being a fully working compiling environment.
 ENV INTERACTIVE ''
 
 # More args supplied to `repo init` command
