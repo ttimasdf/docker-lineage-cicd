@@ -353,6 +353,8 @@ for branch in ${BRANCH_NAME//,/ }; do
 
           if [ "$vendor" = "rr" ]; then
             zipheader="RR"
+          elif [ "$vendor" = "cm" ]; then
+            zipheader="lineage"
           else
             zipheader="$vendor"
           fi
