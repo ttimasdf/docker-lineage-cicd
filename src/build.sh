@@ -70,7 +70,7 @@ if [ "$LOCAL_MIRROR" = true ]; then
   # Copy local manifests to the appropriate folder in order take them into consideration
   echo ">> [$(date)] Copying '$LMANIFEST_DIR/*.xml' to '.repo/local_manifests/'"
   mkdir -p .repo/local_manifests
-  rsync -a --delete --include '*.xml' --exclude '*' "$LMANIFEST_DIR/" .repo/local_manifests/
+  rsync -a --delete --exclude '*.bak' "$LMANIFEST_DIR/" .repo/local_manifests/
 
   rm -f .repo/local_manifests/proprietary.xml
   if [ "$INCLUDE_PROPRIETARY" = true ]; then

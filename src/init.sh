@@ -3,7 +3,7 @@
 # Docker init script
 # Copyright (c) 2017 Julian Xhokaxhiu
 # Copyright (C) 2017-2018 Nicola Corna <nicola@corna.info>
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -21,7 +21,7 @@
 mkdir -p /root/userscripts
 cp -r $USERSCRIPTS_DIR/. /root/userscripts
 find /root/userscripts ! -type d ! -user root -exec echo ">> [$(date)] {} is not owned by root, removing" \; -exec rm {} \;
-find /root/userscripts ! -type d -perm /g=w,o=w -exec echo ">> [$(date)] {} is writable by non-root users, removing" \; -exec rm {} \;
+find /root/userscripts ! -type d -perm /o=w -exec echo ">> [$(date)] {} is writable by non-root users, removing" \; -exec rm {} \;
 
 # Initialize CCache if it will be used
 if [ "$USE_CCACHE" = 1 ]; then
