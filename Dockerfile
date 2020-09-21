@@ -1,3 +1,5 @@
+# docker build . -t ttimasdf/docker-lineage-cicd --force-rm
+
 FROM ubuntu:20.04
 MAINTAINER Nicola Corna <nicola@corna.info>
 
@@ -163,15 +165,15 @@ RUN mkdir -p $USERSCRIPTS_DIR
 ############################
 
 # Use 163 mirror, comment out if necessary
-COPY apt.sources.163.list /etc/apt/sources.list
+COPY apt.sources.tsinghua.list /etc/apt/sources.list
 
 RUN apt-get update
 RUN apt-get -y upgrade
 
 RUN apt-get install -y bc bison bsdmainutils build-essential ccache cgpt cron clang \
       curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick kmod \
-      lib32ncurses5-dev lib32readline-dev lib32z1-dev libesd0-dev liblz4-tool \
-      libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libwxgtk3.0-dev libxml2 \
+      lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool \
+      libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 \
       libxml2-utils lsof lzop maven openjdk-8-jdk pngcrush procps python rsync \
       schedtool squashfs-tools wget xdelta3 xsltproc xxd yasm zip zlib1g-dev
 
