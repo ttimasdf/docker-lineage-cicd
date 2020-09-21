@@ -1,4 +1,4 @@
-FROM debian:stretch
+FROM ubuntu:20.04
 MAINTAINER Nicola Corna <nicola@corna.info>
 
 # Environment variables
@@ -10,7 +10,6 @@ ENV TMP_DIR /srv/tmp
 ENV CCACHE_DIR /srv/ccache
 ENV ZIP_DIR /srv/zips
 ENV LMANIFEST_DIR /srv/local_manifests
-ENV DELTA_DIR /srv/delta
 ENV KEYS_DIR /srv/keys
 ENV LOGS_DIR /srv/logs
 ENV USERSCRIPTS_DIR /srv/userscripts
@@ -29,6 +28,9 @@ ENV USE_CCACHE 1
 # M, G, T (decimal), Ki, Mi, Gi or Ti (binary). The default suffix is G. Use 0
 # for no limit.
 ENV CCACHE_SIZE 50G
+
+# We need to specify the ccache binary since it is no longer packaged along with AOSP
+ENV CCACHE_EXEC /usr/bin/ccache
 
 # Environment for the LineageOS branches name
 # See https://github.com/LineageOS/android_vendor_cm/branches for possible options
@@ -102,23 +104,11 @@ ENV LOGS_SUBDIR true
 # example.
 ENV SIGNATURE_SPOOFING "no"
 
-# Generate delta files
-ENV BUILD_DELTA false
-
 # Delete old zips in $ZIP_DIR, keep only the N latest one (0 to disable)
 ENV DELETE_OLD_ZIPS 0
 
-# Delete old deltas in $DELTA_DIR, keep only the N latest one (0 to disable)
-ENV DELETE_OLD_DELTAS 0
-
 # Delete old logs in $LOGS_DIR, keep only the N latest one (0 to disable)
 ENV DELETE_OLD_LOGS 0
-
-# Create a JSON file that indexes the build zips at the end of the build process
-# (for the updates in OpenDelta). The file will be created in $ZIP_DIR with the
-# specified name; leave empty to skip it.
-# Requires ZIP_SUBDIR.
-ENV OPENDELTA_BUILDS_JSON ''
 
 # Override custom vendor if you want to building a custom ROM.
 ENV VENDOR ''
@@ -153,7 +143,6 @@ VOLUME $TMP_DIR
 VOLUME $CCACHE_DIR
 VOLUME $ZIP_DIR
 VOLUME $LMANIFEST_DIR
-VOLUME $DELTA_DIR
 VOLUME $KEYS_DIR
 VOLUME $LOGS_DIR
 VOLUME $USERSCRIPTS_DIR
@@ -166,7 +155,6 @@ RUN mkdir -p $TMP_DIR
 RUN mkdir -p $CCACHE_DIR
 RUN mkdir -p $ZIP_DIR
 RUN mkdir -p $LMANIFEST_DIR
-RUN mkdir -p $DELTA_DIR
 RUN mkdir -p $KEYS_DIR
 RUN mkdir -p $LOGS_DIR
 RUN mkdir -p $USERSCRIPTS_DIR
@@ -180,10 +168,10 @@ COPY apt.sources.163.list /etc/apt/sources.list
 RUN apt-get update
 RUN apt-get -y upgrade
 
-RUN apt-get install -y bc bison bsdmainutils build-essential ccache cgpt cron \
+RUN apt-get install -y bc bison bsdmainutils build-essential ccache cgpt cron clang \
       curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick kmod \
       lib32ncurses5-dev lib32readline-dev lib32z1-dev libesd0-dev liblz4-tool \
-      libncurses5-dev libsdl1.2-dev libssl-dev libwxgtk3.0-dev libxml2 \
+      libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libwxgtk3.0-dev libxml2 \
       libxml2-utils lsof lzop maven openjdk-8-jdk pngcrush procps python rsync \
       schedtool squashfs-tools wget xdelta3 xsltproc xxd yasm zip zlib1g-dev
 
