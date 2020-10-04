@@ -353,6 +353,7 @@ for branch in ${BRANCH_NAME//,/ }; do
           cd out/target/product/$codename
           for build in $zipheader*.zip; do
             [ -f "$build" ] && sha256sum "$build" > "$ZIP_DIR/$zipsubdir/$build.sha256sum"
+            ota_build="${ota_build:-$build}"
           done
           find . -maxdepth 1 -name "$zipheader*.zip*" -type f -exec mv {} "$ZIP_DIR/$zipsubdir/" \; &>> "$DEBUG_LOG"
           cd "$source_dir"
@@ -378,7 +379,10 @@ for branch in ${BRANCH_NAME//,/ }; do
         fi
         if [ -f /root/userscripts/post-build.sh ]; then
           echo ">> [$(date)] Running post-build.sh for $codename" >> "$DEBUG_LOG"
-          /root/userscripts/post-build.sh $codename $build_successful &>> "$DEBUG_LOG"
+          /root/userscripts/post-build.sh $codename $build_successful \
+            "$ZIP_DIR/$zipsubdir/$ota_build" \
+            "$SRC_DIR/$branch_dir/out/target/product/$codename/system/build.prop" \
+            &>> "$DEBUG_LOG"
         fi
         echo ">> [$(date)] Finishing build for $codename" | tee -a "$DEBUG_LOG"
 
